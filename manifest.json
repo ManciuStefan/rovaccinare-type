@@ -1,0 +1,20 @@
+{
+  "name": "Tip Vaccin - ROVACCINARE",
+  "description": "Afiseaza tipul vaccinului pentru fiecare centru.",
+  "version": "1.0",
+  "manifest_version": 2,
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "content_scripts": [{
+    "matches": ["https://programare.vaccinare-covid.gov.ro/*"],
+    "js": ["contentScript.js"],
+    "run_at": "document_start"
+  }],
+  "permissions": [
+    "activeTab",
+    "https://programare.vaccinare-covid.gov.ro/*",
+    "webRequest",
+    "webRequestBlocking"
+  ]
+}
