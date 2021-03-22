@@ -1,39 +1,57 @@
-function interceptData() {
-  var xhrOverrideScript = document.createElement('script');
-  xhrOverrideScript.type = 'text/javascript';
-  xhrOverrideScript.innerHTML = `
-  (function() {
-    var XHR = XMLHttpRequest.prototype;
-    var send = XHR.send;
-    var open = XHR.open;
-    XHR.open = function(method, url) {
-      console.log(this)
-        this.url = url; // the request url
-        return open.apply(this, arguments);
+const injectedScript ="(" +
+  function() {
+    const getVaccineType = (boosterDays) => {
+      switch (boosterDays) {
+        case 21:
+          return "<b>PFIZER</b>";
+        case 28:
+          return "<b>MODERNA</b>";
+        case 56:
+          return "<b>ASTRAZENECA</b>";
+        default:
+          return "<b>N/A</b>";
+      }
     }
-    XHR.send = function() {
-        this.addEventListener('load', function() {
-          console.log(this)
-            if (this.url.includes('/scheduling/api/centres')) {
-                //console.log(this);
-                var dataDOMElement = document.createElement('div');
-                dataDOMElement.id = '__interceptedData';
-                dataDOMElement.innerText = this.response;
-                dataDOMElement.style.height = 0;
-                dataDOMElement.style.overflow = 'hidden';
-                document.body.appendChild(dataDOMElement);
-            }
+
+    const updateType = (centres) => {
+      let spans = [...document.getElementsByClassName("cdk-column-name")];
+      console.log(spans)
+      centres.forEach(elem => {
+        spans.forEach(span => {
+          console.log(span.innerText.replace(/[^a-zA-Z ]/g, ""));
+          console.log(elem.name.replace(/[^a-zA-Z ]/g, ""));
+          if (span.innerText.includes(elem.name.trim().replace(/\s\s/g, " "))) {
+            span.innerHTML = "(" + getVaccineType(elem.boosterDays) + ") " + span.innerText;
+          }
+        })
+      })
+    }
+
+    const monkeyPatch = () => {
+      let oldXHROpen = window.XMLHttpRequest.prototype.open;
+      window.XMLHttpRequest.prototype.open = function() {
+        this.addEventListener("load", function() {
+          if (this.__zone_symbol__xhrURL.includes("/scheduling/api/centres")) {
+            const responseBody = JSON.parse(this.responseText);
+            setTimeout(function () {updateType(responseBody.content);}, 500);
+          }
         });
-        return send.apply(this, arguments);
+        return oldXHROpen.apply(this, arguments);
+      };
     };
-  })();
-  `
-  document.head.prepend(xhrOverrideScript);
-}
+    monkeyPatch();
+  } + ")();";
+
+const injectScript = () => {
+  var script = document.createElement("script");
+  script.textContent = injectedScript;
+  (document.head || document.documentElement).appendChild(script);
+  script.remove();
+};
+
 function checkForDOM() {
-  console.log("check");
   if (document.body && document.head) {
-    interceptData();
+    injectScript();
   } else {
     requestIdleCallback(checkForDOM);
   }
