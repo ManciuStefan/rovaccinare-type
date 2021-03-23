@@ -15,11 +15,8 @@ const injectedScript ="(" +
 
     const updateType = (centres) => {
       let spans = [...document.getElementsByClassName("cdk-column-name")];
-      console.log(spans)
       centres.forEach(elem => {
         spans.forEach(span => {
-          console.log(span.innerText.replace(/[^a-zA-Z ]/g, ""));
-          console.log(elem.name.replace(/[^a-zA-Z ]/g, ""));
           if (span.innerText.includes(elem.name.trim().replace(/\s\s/g, " "))) {
             span.innerHTML = "(" + getVaccineType(elem.boosterDays) + ") " + span.innerText;
           }
