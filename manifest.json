@@ -9,7 +9,6 @@
     "run_at": "document_start"
   }],
   "permissions": [
-    "activeTab",
     "https://programare.vaccinare-covid.gov.ro/*"
   ]
 }
